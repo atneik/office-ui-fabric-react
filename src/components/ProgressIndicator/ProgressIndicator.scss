@@ -35,7 +35,6 @@ $ProgressIndicatorTextHeight: 18px;
 
 .ms-ProgressIndicator-itemProgress {
   position: relative;
-  width: 180px;
   height: 2px;
   padding: $ProgressIndicatorMarginBetweenText 0;
 }
@@ -63,8 +62,6 @@ $ProgressIndicatorTextHeight: 18px;
     background-color: $ms-color-black;
   }
 }
-
-// TODO: Remove override below.
 
 .ms-ProgressIndicator-progressBar.smoothTransition {
   transition-property: width;
