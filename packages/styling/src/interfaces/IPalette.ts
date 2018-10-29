@@ -78,6 +78,11 @@ export interface IPalette {
   neutralSecondary: string;
 
   /**
+   * Color code for neutralSecondaryAlt.
+   */
+  neutralSecondaryAlt: string;
+
+  /**
    * Color code for neutralTertiary.
    */
   neutralTertiary: string;
@@ -113,10 +118,20 @@ export interface IPalette {
   neutralLighterAlt: string;
 
   /**
+   * Color code for the accent.
+   */
+  accent: string;
+
+  /**
    * Color code for the softest color, which is white in the default theme. This is a very dark color in dark themes.
    * This is the page background.
    */
   white: string;
+
+  /**
+   * Color code for whiteTranslucent40
+   */
+  whiteTranslucent40: string;
 
   /**
    * Color code for yellow.

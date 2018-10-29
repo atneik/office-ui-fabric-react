@@ -1,39 +1,37 @@
-/* tslint:disable:no-unused-variable */
 import * as React from 'react';
-/* tslint:enable:no-unused-variable */
-import * as ReactDOM from 'react-dom';
+import * as renderer from 'react-test-renderer';
 
-let { expect } = chai;
 import { mount } from 'enzyme';
 
-import { Dialog } from './Dialog';
-import { DialogType } from './DialogContent.Props';
+import { DialogBase } from './Dialog.base';
+import { DialogContent } from './DialogContent';
+import { DialogType } from './DialogContent.types'; // for express fluent assertions
 
-/* tslint:disable:no-unused-expression */// for express fluent assertions
+/* tslint:disable:no-unused-expression */ describe('Dialog', () => {
+  it('renders Dialog correctly', () => {
+    const component = renderer.create(<DialogContent />);
+    const tree = component.toJSON();
+    expect(tree).toMatchSnapshot();
+  });
 
-describe('Dialog', () => {
-  it('Fires dismissed after closing', (done) => {
+  it('Fires dismissed after closing', done => {
     let dismissedCalled = false;
 
     const handleDismissed = () => {
       dismissedCalled = true;
     };
 
-    const wrapper = mount(
-      <Dialog
-        hidden={ false }
-        modalProps={ { onDismissed: handleDismissed } } />
-    );
+    const wrapper = mount(<DialogBase hidden={false} modalProps={{ onDismissed: handleDismissed }} />);
 
-    expect(document.querySelector('[role="dialog"]')).to.not.be.null;
+    expect(document.querySelector('[role="dialog"]')).not.toBeNull();
     wrapper.setProps({ hidden: true });
     wrapper.update();
 
     // give time for update to complete
     setTimeout(() => {
       try {
-        expect(document.querySelector('[role="dialog"]')).to.be.null;
-        expect(dismissedCalled).to.be.true;
+        expect(document.querySelector('[role="dialog"]')).toBeNull();
+        expect(dismissedCalled).toEqual(true);
       } catch (e) {
         done(e);
       }
@@ -44,66 +42,77 @@ describe('Dialog', () => {
 
   it('Properly attaches auto-generated aria attributes IDs', () => {
     const wrapper = mount(
-      <Dialog
-        hidden={ false }
-        modalProps={ { onDismissed: () => {/* no-op */ } } }
-        dialogContentProps={ {
+      <DialogBase
+        hidden={false}
+        modalProps={{
+          onDismissed: () => {
+            /* no-op */
+          }
+        }}
+        dialogContentProps={{
           type: DialogType.normal,
           title: 'sample title',
           subText: 'Sample subtext'
-        } } />
+        }}
+      />
     );
 
     const dialogHTML = document.querySelector('[role="dialog"]');
-    expect(dialogHTML).to.not.be.null;
-    expect(dialogHTML!.getAttribute('aria-labelledby')).to.match(/Dialog[\d+]+-title/, 'aria label should match the pattern');
-    expect(dialogHTML!.getAttribute('aria-describedby')).to.match(/Dialog[\d+]+-subText/, 'aria describeby should match the pattern');
+    expect(dialogHTML).not.toBeNull();
+    expect(dialogHTML!.getAttribute('aria-labelledby')).toMatch(/Dialog[\d+]+-title/);
+    expect(dialogHTML!.getAttribute('aria-describedby')).toMatch(/Dialog[\d+]+-subText/);
     wrapper.unmount();
   });
 
   it('Properly attaches IDs when aria-describedby is passed', () => {
     const subTextAriaId = 'subtextariaid';
     const wrapper = mount(
-      <Dialog
-        hidden={ false }
-        modalProps={ {
-          onDismissed: () => {/* no-op */ },
-          subtitleAriaId: subTextAriaId,
-        } }
-        dialogContentProps={ {
+      <DialogBase
+        hidden={false}
+        modalProps={{
+          onDismissed: () => {
+            /* no-op */
+          },
+          subtitleAriaId: subTextAriaId
+        }}
+        dialogContentProps={{
           type: DialogType.normal,
           title: 'sample title',
           subText: 'Sample subtext'
-        } } />
+        }}
+      />
     );
 
     const dialogHTML = document.querySelector('[role="dialog"]');
-    expect(dialogHTML).to.not.be.null;
-    expect(dialogHTML!.getAttribute('aria-labelledby')).to.match(/Dialog[\d+]+-title/, 'aria label should match the pattern');
-    expect(dialogHTML!.getAttribute('aria-describedby')).equals(subTextAriaId, 'aria describeby should match the pattern');
+    expect(dialogHTML).not.toBeNull();
+    expect(dialogHTML!.getAttribute('aria-labelledby')).toMatch(/Dialog[\d+]+-title/);
+    expect(dialogHTML!.getAttribute('aria-describedby')).toEqual(subTextAriaId);
     wrapper.unmount();
   });
 
   it('Properly attaches IDs when aria-labelledby is passed', () => {
     const titleAriaId = 'titleariaid';
     const wrapper = mount(
-      <Dialog
-        hidden={ false }
-        modalProps={ {
-          onDismissed: () => {/* no-op */ },
-          titleAriaId: titleAriaId,
-        } }
-        dialogContentProps={ {
+      <DialogBase
+        hidden={false}
+        modalProps={{
+          onDismissed: () => {
+            /* no-op */
+          },
+          titleAriaId: titleAriaId
+        }}
+        dialogContentProps={{
           type: DialogType.normal,
           title: 'sample title',
           subText: 'Sample subtext'
-        } } />
+        }}
+      />
     );
 
     const dialogHTML = document.querySelector('[role="dialog"]');
-    expect(dialogHTML).to.not.be.null;
-    expect(dialogHTML!.getAttribute('aria-labelledby')).equals(titleAriaId, 'aria label should match the pattern');
-    expect(dialogHTML!.getAttribute('aria-describedby')).to.match(/Dialog[\d+]+-subText/, 'aria describeby should match the pattern');
+    expect(dialogHTML).not.toBeNull();
+    expect(dialogHTML!.getAttribute('aria-labelledby')).toEqual(titleAriaId);
+    expect(dialogHTML!.getAttribute('aria-describedby')).toMatch(/Dialog[\d+]+-subText/);
     wrapper.unmount();
   });
 });

@@ -10,16 +10,22 @@
 const GLOBAL_SETTINGS_PROP_NAME = '__globalSettings__';
 const CALLBACK_STATE_PROP_NAME = '__callbacks__';
 
-let _globalSettings: { [key: string]: any } = {};
+// tslint:disable-next-line:no-any
+let _global: { [key: string]: any };
 let _counter = 0;
 
 if (typeof window !== 'undefined') {
-  let win = window as any;
-
-  _globalSettings = win[GLOBAL_SETTINGS_PROP_NAME] = win[GLOBAL_SETTINGS_PROP_NAME] || {
-    [CALLBACK_STATE_PROP_NAME]: {}
-  };
+  _global = window;
+} else if (typeof global !== 'undefined') {
+  _global = global;
+} else {
+  _global = {};
 }
+
+// tslint:disable-next-line:no-any
+let _globalSettings: { [key: string]: any } = (_global[GLOBAL_SETTINGS_PROP_NAME] = _global[GLOBAL_SETTINGS_PROP_NAME] || {
+  [CALLBACK_STATE_PROP_NAME]: {}
+});
 
 const _callbacks = _globalSettings[CALLBACK_STATE_PROP_NAME];
 
@@ -30,7 +36,9 @@ const _callbacks = _globalSettings[CALLBACK_STATE_PROP_NAME];
  */
 export interface IChangeDescription {
   key: string;
+  // tslint:disable-next-line:no-any
   oldValue: any;
+  // tslint:disable-next-line:no-any
   value: any;
 }
 
@@ -60,7 +68,7 @@ export class GlobalSettings {
     return _globalSettings[key];
   }
 
-  public static setValue<T>(key: string, value: T): void {
+  public static setValue<T>(key: string, value: T): T {
     let oldValue = _globalSettings[key];
 
     if (value !== oldValue) {
@@ -78,6 +86,8 @@ export class GlobalSettings {
         }
       }
     }
+
+    return value;
   }
 
   public static addChangeListener(cb: IChangeEventCallback): void {
@@ -95,5 +105,4 @@ export class GlobalSettings {
   public static removeChangeListener(cb: IChangeEventCallback): void {
     delete _callbacks[cb.__id__ as string];
   }
-
 }

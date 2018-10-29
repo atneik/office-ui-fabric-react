@@ -1,8 +1,7 @@
-
-import { TilesGridMode, ITilesGridItem, ITilesGridSegment, ITileSize } from '../TilesList.Props';
+import { TilesGridMode, ITilesGridItem, ITilesGridSegment, ITileSize } from '../TilesList.types';
 import { lorem } from '@uifabric/example-app-base';
 
-type IAspectRatioByProbability = { [probability: string]: number; };
+type IAspectRatioByProbability = { [probability: string]: number };
 
 const PROBABILITIES: IAspectRatioByProbability = {
   '0.95': 3,
@@ -34,7 +33,7 @@ export interface IExampleGroup {
   key: string;
 }
 
-export function createMediaItems(count: number, indexOffset: number) {
+export function createMediaItems(count: number, indexOffset: number): IExampleItem[] {
   const items: IExampleItem[] = [];
 
   for (let i = 0; i < count; i++) {
@@ -44,19 +43,17 @@ export function createMediaItems(count: number, indexOffset: number) {
       key: `item-${indexOffset + i}`,
       name: lorem(4),
       index: indexOffset + i,
-      aspectRatio: ENTRIES.filter((entry: { probability: number; aspectRatio: number; }) => seed >= entry.probability)[0].aspectRatio
+      aspectRatio: ENTRIES.filter((entry: { probability: number; aspectRatio: number }) => seed >= entry.probability)[0].aspectRatio
     });
   }
 
   return items;
 }
 
-export function createDocumentItems(count: number, indexOffset: number) {
+export function createDocumentItems(count: number, indexOffset: number): IExampleItem[] {
   const items: IExampleItem[] = [];
 
   for (let i = 0; i < count; i++) {
-    const seed = Math.random();
-
     items.push({
       key: `item-${indexOffset + i}`,
       name: lorem(4),
@@ -78,53 +75,86 @@ export function createGroup(items: IExampleItem[], type: 'document' | 'media', i
   };
 }
 
-export function getTileCells(groups: IExampleGroup[], {
-  onRenderCell,
-  onRenderHeader
-}: {
+export function getTileCells(
+  groups: IExampleGroup[],
+  {
+    onRenderCell,
+    onRenderHeader,
+    size = 'large',
+    shimmerMode = false
+  }: {
     onRenderHeader: (item: IExampleItem) => JSX.Element;
     onRenderCell: (item: IExampleItem, finalSize?: ITileSize) => JSX.Element;
-  }) {
+    size?: 'large' | 'small';
+    shimmerMode?: boolean;
+  }
+): (ITilesGridSegment<IExampleItem> | ITilesGridItem<IExampleItem>)[] {
   const items: (ITilesGridSegment<IExampleItem> | ITilesGridItem<IExampleItem>)[] = [];
+  const isLargeSize: boolean = size === 'large' ? true : false;
 
   for (const group of groups) {
     const header: ITilesGridItem<IExampleItem> = {
       key: `header-${group.key}`,
       content: {
-        key: '',
+        key: group.key,
         aspectRatio: 1,
-        name: lorem(6),
+        name: group.name,
         index: group.index
       },
-      onRender: onRenderHeader
+      onRender: onRenderHeader,
+      isPlaceholder: shimmerMode
     };
 
     items.push(header);
 
     items.push({
-      items: group.items.map((item: IExampleItem): ITilesGridItem<IExampleItem> => {
-        return {
-          key: item.key,
-          content: item,
-          desiredSize: group.type === 'document' ? {
-            width: 176,
-            height: 171
-          } : {
-              width: 171 * item.aspectRatio,
-              height: 171
-            },
-          onRender: onRenderCell
-        };
-      }),
-      spacing: 8,
-      marginBottom: 40,
-      minRowHeight: 171,
-      mode: group.type === 'document' ?
-        TilesGridMode.stack :
-        TilesGridMode.fill,
-      key: group.key
+      items: group.items.map(
+        (item: IExampleItem): ITilesGridItem<IExampleItem> => {
+          return {
+            key: item.key,
+            content: item,
+            desiredSize:
+              group.type === 'document'
+                ? {
+                    width: isLargeSize ? 176 : 138,
+                    height: isLargeSize ? 171 : 135
+                  }
+                : {
+                    width: isLargeSize ? 171 * item.aspectRatio : 135 * item.aspectRatio,
+                    height: isLargeSize ? 171 : 135
+                  },
+            onRender: onRenderCell,
+            isPlaceholder: shimmerMode
+          };
+        }
+      ),
+      spacing: isLargeSize ? 8 : 12,
+      marginBottom: shimmerMode ? 0 : 40,
+      minRowHeight: isLargeSize ? 171 : 135,
+      mode: group.type === 'document' ? (size === 'small' ? TilesGridMode.fillHorizontal : TilesGridMode.stack) : TilesGridMode.fill,
+      key: group.key,
+      isPlaceholder: shimmerMode
     });
   }
 
   return items;
+}
+
+export function createShimmerGroups(type: 'document' | 'media', index: number): IExampleGroup[] {
+  return [
+    {
+      items: [
+        {
+          key: `shimmerItem-${index}`,
+          name: lorem(4),
+          index: index,
+          aspectRatio: 1
+        }
+      ],
+      index: index,
+      name: lorem(4),
+      key: `shimmerGroup-${index}`,
+      type: type
+    }
+  ];
 }

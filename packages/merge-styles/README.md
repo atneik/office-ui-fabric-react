@@ -4,27 +4,46 @@ The `merge-styles` library provides utilities for loading styles through javascr
 
 The library was built for speed and size; the entire package is 2.62k gzipped. It has no dependencies other than `tslib`.
 
-The basic idea is to provide a method which can take in one or more style objects css styling javascript objects representing the styles for a given element, and return a single class name. If the same set of styling is passed in, the same name returns and nothing is re-registered.
+Simple usage:
+
+```
+import { mergeStyles, mergeStyleSet } from '@uifabric/merge-styles';
+
+// Produces 'css-0' class name which can be used anywhere
+mergeStyles({ background: 'red' });
+
+// Produces a class map for a bunch of rules all at once
+mergeStyleSet({
+  root: { background: 'red' },
+  child: { background: 'green' }
+});
+
+// Returns { root: 'root-0', child: 'child-1' }
+```
+
+Both utilities behave similar to a deep Object.assign; you can collapse many objects down into one class name or class map.
+
+The basic idea is to provide tools which can take in one or more css styling objects representing the styles for a given element, and return a single class name. If the same set of styling is passed in, the same name returns and nothing is re-registered.
 
 ## Motivation
 
 Defining rules at runtime has a number of benefits over traditional build time staticly produced css:
 
-* Only register classes that are needed, when they're needed, reducing the overall selector count and improving TTG.
+- Only register classes that are needed, when they're needed, reducing the overall selector count and improving TTG.
 
-* Dynamically create new class permutations based on contextual theming requirements. (Use a different theme inside of a DIV without downloading multiple copies of the css rule definitions.)
+- Dynamically create new class permutations based on contextual theming requirements. (Use a different theme inside of a DIV without downloading multiple copies of the css rule definitions.)
 
-* Use JavaScript to define the class content (using utilities like color converters, or reusing constant numbers becomes possible.)
+- Use JavaScript to define the class content (using utilities like color converters, or reusing constant numbers becomes possible.)
 
-* Allow control libraries to merge customized styling in with their rules, avoiding complexities like css selector specificity.
+- Allow control libraries to merge customized styling in with their rules, avoiding complexities like css selector specificity.
 
-* Simplify RTL processing; lefts become rights in RTL, in the actual rules. No complexity like `html[dir=rtl]` prefixes necessary, which alleviates unexpected specificity bugs. (You can use `/* noflip */` comments to avoid flipping if needed.)
+- Simplify RTL processing; lefts become rights in RTL, in the actual rules. No complexity like `html[dir=rtl]` prefixes necessary, which alleviates unexpected specificity bugs. (You can use `/* noflip */` comments to avoid flipping if needed.)
 
-* Reduce bundle size. Automatically handles vendor prefixing, unit providing, RTL flipping, and margin/padding expansion (e.g. margin will automatically expand out to margin TRBL, so that we avoid specificity problems when merging things together.)
+- Reduce bundle size. Automatically handles vendor prefixing, unit providing, RTL flipping, and margin/padding expansion (e.g. margin will automatically expand out to margin TRBL, so that we avoid specificity problems when merging things together.)
 
-* Reduce the build time overhead of running through CSS preprocessors.
+- Reduce the build time overhead of running through CSS preprocessors.
 
-* TypeScript type safety; spell "background" wrong and get build breaks.
+- TypeScript type safety; spell "background" wrong and get build breaks.
 
 ## What tradeoffs are there? Are there downsides to using JavaScript to process styling?
 
@@ -74,7 +93,7 @@ A **style set** represents a map of area to style object. When building a compon
 let styleSet = {
   root: { background: 'red' },
   button: { margin: 42 }
-}
+};
 ```
 
 ## Basic usage
@@ -119,9 +138,9 @@ export const MyComponent = () => {
   let { root, button, buttonIcon } = getClassNames();
 
   return (
-    <div className={ root }>
-      <button className={ button }>
-        <i className={ buttonIcon } />
+    <div className={root}>
+      <button className={button}>
+        <i className={buttonIcon} />
       </button>
     </div>
   );
@@ -129,6 +148,8 @@ export const MyComponent = () => {
 ```
 
 ## Selectors
+
+### Basic pseudo-selectors (:hover, :active, etc)
 
 Custom selectors can be defined within `IStyle` definitions under the `selectors` section:
 
@@ -143,12 +164,18 @@ Custom selectors can be defined within `IStyle` definitions under the `selectors
 }
 ```
 
-By default, the rule will be appended to the current selector scope. That is, in the above scenario, there will be 2 rules inserted when using `mergeRules`:
+By default, the rule will be appended to the current selector scope. That is, in the above scenario, there will be 2 rules inserted when using `mergeStyles`:
 
 ```css
-.css-0 { background: red; }
-.css-0:hover { background: green; }
+.css-0 {
+  background: red;
+}
+.css-0:hover {
+  background: green;
+}
 ```
+
+### Parent/child selectors
 
 In some cases, you may need to use parent or child selectors. To do so, you can define a selector from scratch and use the `&` character to represent the generated class name. When using the `&`, the current scope is ignored. Example:
 
@@ -156,7 +183,7 @@ In some cases, you may need to use parent or child selectors. To do so, you can 
 {
   selectors: {
     // selector relative to parent
-    '.ms-Fabric.is-focusVisible &': {
+    '.ms-Fabric--isFocusVisible &': {
       background: 'red'
     }
     // selector for child
@@ -170,15 +197,124 @@ In some cases, you may need to use parent or child selectors. To do so, you can 
 This would register the rules:
 
 ```css
-.ms-Fabric.is-focusVisible .css-0 { background: red; }
-.css-0 .child { background: green; }
+.ms-Fabric--isFocusVisible .css-0 {
+  background: red;
+}
+.css-0 .child {
+  background: green;
+}
 ```
+
+### Global selectors
+
+While we suggest avoiding global selectors, there are some cases which make sense to register things globally. Keep in mind that global selectors can't be guaranteed unique and may suffer from specificity problems and versioning issues in the case that two different versions of your library get rendered on the page.
+
+To register a selector globally, wrap it in a `:global()` wrapper:
+
+```tsx
+{
+  selectors: {
+    ':global(button)': {
+      overflow: 'visible'
+    }
+  }
+}
+```
+
+### Media and feature queries
+
+Media queries can be applied via selectors. For example, this style will produce a class which has a red background when above 600px, and green when at or below 600px:
+
+```tsx
+mergeStyles({
+  background: 'red',
+  selectors: {
+    '@media(max-width: 600px)': {
+      background: 'green'
+    },
+    '@supports(display: grid)': {
+      display: 'grid'
+    }
+  }
+});
+```
+
+Produces:
+
+```css
+.css-0 {
+  background: red;
+}
+
+@media (max-width: 600px) {
+  .css-0 {
+    background: green;
+  }
+}
+
+@supports (display: grid) {
+  .css-0 {
+    display: grid;
+  }
+}
+```
+
+### Referencing child elements within the mergeStyleSets scope
+
+One important concept about `mergeStyleSets` is that it produces a map of class names for the given elements:
+
+```tsx
+mergeStyleSets({
+  root: { background: 'red' }
+  thumb: { background: 'green' }
+});
+```
+
+Produces:
+
+```css
+.root-0 {
+  background: red;
+}
+.thumb-1 {
+  background: green;
+}
+```
+
+In some cases, you may need to alter a child area by interacting with the parent. For example, when the parent is hovered, change the child background. You can reference the areas defined in the style set using $ tokens:
+
+```tsx
+mergeStyleSets({
+  root: {
+    selectors: {
+      ':hover $thumb': { background: 'lightgreen' }
+    }
+   }
+  thumb: { background: 'green' }
+});
+```
+
+The `$thumb` reference in the selector on root will be replaced with the class name generated for thumb.
 
 ## Custom class names
 
-By default class names that are generated will use the prefix `css-` followed by a number, creating unique rules where needed.
+By default when using `mergeStyles`, class names that are generated will use the prefix `css-` followed by a number, creating unique rules where needed. For example, the first class name produced will be 'css-0'.
 
-While this prefix is fine, sometimes a more readable prefix is desired. You can pass in a `displayName` to resolve this:
+When using `mergeStyleSets`, class names automatically use the area name as the prefix.
+
+Merging rules like:
+
+```ts
+mergeStyleSets({ a: { ... }, b: { ... } })
+```
+
+Will produce the class name map:
+
+```ts
+{ a: 'a-0', b: 'b-1' }
+```
+
+If you'd like to override the default prefix in either case, you can pass in a `displayName` to resolve this:
 
 ```tsx
 {
@@ -190,7 +326,9 @@ While this prefix is fine, sometimes a more readable prefix is desired. You can 
 This generates:
 
 ```css
-.MyComponent-0 { background: red; }
+.MyComponent-0 {
+  background: red;
+}
 ```
 
 ## Managing conditionals and states
@@ -200,10 +338,7 @@ Style objects can be represented by a simple object, but also can be an array of
 In the following example, the root class generated will be different depending on the `isToggled` state:
 
 ```tsx
-export const getClassNames = (
-  isToggled: boolean
-): IComponentClassNames => {
-
+export const getClassNames = (isToggled: boolean): IComponentClassNames => {
   return mergeStyleSet({
     root: [
       {
@@ -213,8 +348,22 @@ export const getClassNames = (
         background: 'green'
       }
     ]
-  })
+  });
 };
+```
+
+## RTL support
+
+By default, nearly all of the major rtl-sensitive CSS properties will be auto flipped when the dir="rtl" flag is present on the `HTML` tag of the page.
+
+There are some rare scenarios (linear-gradients, etc) which are not flipped, for the sake of keeping the bundle size to a minimum. If there are missing edge cases, please submit a PR to address.
+
+In rare condition where you want to avoid auto flipping, you can annotate the rule with the `@noflip` directive:
+
+```tsx
+mergeStyles({
+  left: '42px @noflip'
+});
 ```
 
 ## Optimizing for performance
@@ -228,9 +377,7 @@ Resolving the class names on every render can be an unwanted expense especially 
 ```tsx
 import { memoizeFunction } from '@uifabric/utilities';
 
-export const getClassNames = memoizeFunction((
-  isToggled: boolean
-) => {
+export const getClassNames = memoizeFunction((isToggled: boolean) => {
   return mergeStyleSet({
     // ...
   });
@@ -247,7 +394,7 @@ import { fontFace } from '@uifabric/merge-styles';
 fontFace({
   fontFamily: `"Segoe UI"`,
   src: `url("//cdn.com/fontface.woff2) format(woff2)`,
-  fontWeight: "normal"
+  fontWeight: 'normal'
 });
 ```
 
@@ -261,10 +408,10 @@ Registering animation keyframes example:
 import { keyframes, mergeStyleSets } from '@uifabric/merge-styles';
 
 let fadeIn = keyframes({
-  "from": {
+  from: {
     opacity: 0
   },
-  "to": {
+  to: {
     opacity: 1
   }
 });
@@ -294,12 +441,12 @@ let { html, css } = renderStatic(() => {
 
 Caveats for server-side rendering (TODOs):
 
-* Currently font face definitions and keyframes won't be included in the result.
+- Currently font face definitions and keyframes won't be included in the result.
 
-* Using the `memoizeFunction` utility may short circuit calling merge-styles APIs to register styles, which may cause the helper here to skip returning css. This can be fixed, but it is currently a known limitation.
+- Using the `memoizeFunction` utility may short circuit calling merge-styles APIs to register styles, which may cause the helper here to skip returning css. This can be fixed, but it is currently a known limitation.
 
-* Until all Fabric components use the merge-styles library, this will only return a subset of the styling. Also a known limitation and work in progress.
+- Until all Fabric components use the merge-styles library, this will only return a subset of the styling. Also a known limitation and work in progress.
 
-* The rehydration logic has not yet been implemented, so we may run into issues when you rehydrate.
+- The rehydration logic has not yet been implemented, so we may run into issues when you rehydrate.
 
-* Only components which USE mergeStyles will have their css included. In Fabric, not all components have been converted from using SASS yet.
+- Only components which USE mergeStyles will have their css included. In Fabric, not all components have been converted from using SASS yet.

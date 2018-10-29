@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "outDir": "lib",
     "target": "es5",
     "module": "commonjs",
     "jsx": "react",
@@ -10,15 +11,9 @@
     "importHelpers": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
-    "types": [
-      "webpack-env"
-    ],
+    "preserveConstEnums": false,
+    "types": ["webpack-env"],
     "paths": {}
   },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "lib",
-    "lib-amd"
-  ]
+  "include": ["src"]
 }

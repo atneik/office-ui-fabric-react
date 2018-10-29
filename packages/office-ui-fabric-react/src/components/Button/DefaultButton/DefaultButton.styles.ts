@@ -1,61 +1,34 @@
-import { IButtonStyles } from '../Button.Props';
-import {
-  ITheme,
-  mergeStyleSets,
-  FontWeights
-} from '../../../Styling';
+import { IButtonStyles } from '../Button.types';
+import { ITheme, concatStyleSets, FontWeights } from '../../../Styling';
 import { memoizeFunction } from '../../../Utilities';
-import {
-  getStyles as getBaseButtonStyles
-} from '../BaseButton.styles';
-import {
-  getStyles as getSplitButtonStyles
-} from '../SplitButton/SplitButton.styles';
+import { getStyles as getBaseButtonStyles } from '../BaseButton.styles';
+import { getStyles as getSplitButtonStyles } from '../SplitButton/SplitButton.styles';
+
+import { primaryStyles, standardStyles } from '../ButtonThemes';
 
 const DEFAULT_BUTTON_HEIGHT = '32px';
 const DEFAULT_BUTTON_MINWIDTH = '80px';
-const DEFAULT_PADDING = '0 16px';
 
-export const getStyles = memoizeFunction((
-  theme: ITheme,
-  customStyles?: IButtonStyles,
-  focusInset?: string,
-  focusColor?: string
-): IButtonStyles => {
-  let baseButtonStyles: IButtonStyles = getBaseButtonStyles(theme, focusInset, focusColor);
-  let splitButtonStyles: IButtonStyles = getSplitButtonStyles(theme);
-  let defaultButtonStyles: IButtonStyles = {
-    root: {
-      minWidth: DEFAULT_BUTTON_MINWIDTH,
-      height: DEFAULT_BUTTON_HEIGHT,
-      backgroundColor: theme.palette.neutralLighter,
-      color: theme.palette.neutralPrimary
-    },
+export const getStyles = memoizeFunction(
+  (theme: ITheme, customStyles?: IButtonStyles, primary?: boolean): IButtonStyles => {
+    const baseButtonStyles: IButtonStyles = getBaseButtonStyles(theme);
+    const splitButtonStyles: IButtonStyles = getSplitButtonStyles(theme);
+    const defaultButtonStyles: IButtonStyles = {
+      root: {
+        minWidth: DEFAULT_BUTTON_MINWIDTH,
+        height: DEFAULT_BUTTON_HEIGHT
+      },
+      label: {
+        fontWeight: FontWeights.semibold
+      }
+    };
 
-    rootHovered: {
-      backgroundColor: theme.palette.neutralLight,
-      color: theme.palette.black
-    },
-
-    rootPressed: {
-      backgroundColor: theme.palette.neutralTertiaryAlt,
-      color: theme.palette.neutralDark
-    },
-
-    rootExpanded: {
-      backgroundColor: theme.palette.neutralTertiaryAlt,
-      color: theme.palette.neutralDark
-    },
-
-    rootChecked: {
-      backgroundColor: theme.palette.neutralTertiaryAlt,
-      color: theme.palette.neutralDark
-    },
-
-    label: {
-      fontWeight: FontWeights.semibold
-    }
-  };
-
-  return mergeStyleSets(baseButtonStyles, defaultButtonStyles, splitButtonStyles, customStyles)!;
-});
+    return concatStyleSets(
+      baseButtonStyles,
+      defaultButtonStyles,
+      primary ? primaryStyles(theme) : standardStyles(theme),
+      splitButtonStyles,
+      customStyles
+    )!;
+  }
+);

@@ -1,15 +1,10 @@
 import { renderStatic } from './server';
-import {
-  mergeStyleSets
-} from './mergeStyleSets';
-
-const { expect } = chai;
+import { mergeStyleSets } from './mergeStyleSets';
 
 describe('staticRender', () => {
   it('can render content', () => {
-
     const { html, css } = renderStatic(() => {
-      const classNames = mergeStyleSets({
+      const classNames: { root: string } = mergeStyleSets({
         root: {
           background: 'red'
         }
@@ -18,7 +13,22 @@ describe('staticRender', () => {
       return `<div class="${classNames.root}">Hello!</div>`;
     });
 
-    expect(html).equals(`<div class="css-0">Hello!</div>`);
-    expect(css).equals(`.css-0{background:red;}`);
+    expect(html).toEqual(`<div class="root-0">Hello!</div>`);
+    expect(css).toEqual(`.root-0{background:red;}`);
+  });
+
+  it('can namespace things', () => {
+    const { html, css } = renderStatic(() => {
+      const classNames: { root: string } = mergeStyleSets({
+        root: {
+          background: 'red'
+        }
+      });
+
+      return `<div class="${classNames.root}">Hello!</div>`;
+    }, 'test');
+
+    expect(html).toEqual(`<div class="test-root-0">Hello!</div>`);
+    expect(css).toEqual(`.test-root-0{background:red;}`);
   });
 });

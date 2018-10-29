@@ -1,78 +1,64 @@
-'use strict';
-
-/** Note: this require may need to be fixed to point to the build that exports the gulp-core-build-webpack instance. */
-let build = require('@microsoft/web-library-build');
-let webpackTaskResources = build.webpack.resources;
-let webpack = webpackTaskResources.webpack;
 let path = require('path');
-let buildConfig = build.getConfig();
-let BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const resources = require('../../scripts/tasks/webpack-resources');
+const ManifestServicePlugin = require('@uifabric/webpack-utils/lib/ManifestServicePlugin');
 
 const BUNDLE_NAME = 'office-ui-fabric-react';
-const BUNDLE_TEST = 'fabric-test';
 const IS_PRODUCTION = process.argv.indexOf('--production') > -1;
 
-// Create an array of configs, prepopulated with a debug (non-minified) build.
-let configs = [
-  createConfig(false)
-];
+let entry = {
+  [BUNDLE_NAME]: './lib/index.bundle.js'
+};
 
-// Create a production config if applicable.
-if (IS_PRODUCTION) {
-  configs.push(createConfig(true));
-}
+function createConfig(config, onlyProduction) {
+  return resources.createConfig(
+    BUNDLE_NAME,
+    IS_PRODUCTION,
+    {
+      entry,
 
-// Helper to create the config.
-function createConfig(isProduction) {
-  let webpackConfig = {
-
-    entry: {
-      [BUNDLE_TEST]: './lib/VisualTestRoot.js',
-      [BUNDLE_NAME]: './lib/index.js'
-    },
-
-    output: {
-      libraryTarget: 'var',
-      library: 'Fabric',
-      path: path.join(__dirname, buildConfig.distFolder),
-      publicPath: '/dist/',
-      filename: `[name]${isProduction ? '.min' : ''}.js`
-    },
-
-    devtool: 'source-map',
-
-    externals: [
-      {
-        'react': 'React',
-      },
-      {
-        'react-dom': 'ReactDOM'
-      }
-    ],
-
-    plugins: [
-      new BundleAnalyzerPlugin({
-        analyzerMode: 'static',
-        reportFilename: BUNDLE_NAME + '.stats.html',
-        openAnalyzer: false
-      })
-    ]
-  };
-
-  if (isProduction) {
-    webpackConfig.plugins.push(
-      new webpack.DefinePlugin({
-        'process.env.NODE_ENV': JSON.stringify('production')
-      }),
-      new webpack.optimize.UglifyJsPlugin({
-        minimize: true,
-        compress: {
-          warnings: false
+      externals: [
+        {
+          react: 'React'
+        },
+        {
+          'react-dom': 'ReactDOM'
         }
-      }));
-  }
+      ],
 
-  return webpackConfig;
+      resolve: {
+        alias: {
+          'office-ui-fabric-react/src': path.join(__dirname, 'src'),
+          'office-ui-fabric-react/lib': path.join(__dirname, 'lib'),
+          'Props.ts.js': 'Props',
+          'Example.tsx.js': 'Example'
+        }
+      },
+
+      ...config
+    },
+    onlyProduction
+  );
 }
 
-module.exports = configs;
+module.exports = [
+  createConfig(
+    {
+      output: {
+        libraryTarget: 'var',
+        library: 'Fabric'
+      }
+    },
+    false
+  ),
+  createConfig(
+    {
+      plugins: [new ManifestServicePlugin()],
+      output: {
+        libraryTarget: 'umd',
+        library: 'Fabric',
+        filename: `${BUNDLE_NAME}.umd.js`
+      }
+    },
+    true
+  )
+];
