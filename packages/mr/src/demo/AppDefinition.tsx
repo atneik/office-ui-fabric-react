@@ -14,6 +14,18 @@ export const AppDefinition: IAppDefinition = {
           key: 'Panel',
           name: 'Panel',
           url: '#/examples/panel'
+        },
+        {
+          component: require<any>('../components/Scene/ScenePage').ScenePage,
+          key: 'Scene',
+          name: 'Scene',
+          url: '#/examples/scene'
+        },
+        {
+          component: require<any>('../components/ContextualMenu/ContextualMenuPage').ContextualMenuPage,
+          key: 'ContextualMenu',
+          name: 'ContextualMenu',
+          url: '#/examples/contextualmenu'
         }
       ]
     }

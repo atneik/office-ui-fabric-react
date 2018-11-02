@@ -1,7 +1,6 @@
 import * as BABYLON from 'babylonjs';
-import BlurMaterial from '../../common/materials/BlurMaterial';
 import { Entity } from '../../common/nucleus3d/core';
-import { FluentTheme, IPanelProps } from './Panel.types';
+import { BlurMaterial, FluentTheme, IPanelProps } from '@uifabric/mr';
 
 export class Panel extends Entity<IPanelProps> {
   protected didMount(): void {
@@ -35,8 +34,8 @@ export class Panel extends Entity<IPanelProps> {
     tintPlane.position.z += layerSeparation;
 
     if (!this.props.receiveInput) {
-      BABYLON.Tags.AddTagsTo(blurPlane, 'IGNORE_INPUT');
-      BABYLON.Tags.AddTagsTo(tintPlane, 'IGNORE_INPUT');
+      BABYLON.Tags.AddTagsTo(blurPlane, 'IgnoreInput');
+      BABYLON.Tags.AddTagsTo(tintPlane, 'IgnoreInput');
     }
 
     const tintMat: BABYLON.StandardMaterial = new BABYLON.StandardMaterial('tintMat', this.context.scene);
