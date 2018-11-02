@@ -3,7 +3,7 @@
  * See https://github.com/haroldma/nucleus3d/blob/master/LICENSE for license information.
  */
 
-import { clone } from '@microsoft/sp-lodash-subset';
+import clone from 'lodash-es/clone';
 
 import Component from '../Component';
 import Entity from '../Entity';

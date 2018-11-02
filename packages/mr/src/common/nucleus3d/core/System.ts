@@ -3,7 +3,7 @@
  * See https://github.com/haroldma/nucleus3d/blob/master/LICENSE for license information.
  */
 
-import { cloneDeep } from '@microsoft/sp-lodash-subset';
+import cloneDeep from 'lodash-es/cloneDeep';
 
 import INucleusContext from './common/INucleusContext';
 import Component from './Component';

@@ -4,7 +4,7 @@
  */
 
 import * as BABYLON from 'babylonjs';
-import { cloneDeep } from '@microsoft/sp-lodash-subset';
+import cloneDeep from 'lodash-es/cloneDeep';
 
 import INucleusContext from './common/INucleusContext';
 import Component from './Component';
