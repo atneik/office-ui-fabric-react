@@ -256,7 +256,9 @@ interface WebGLRenderingContext {
     QUERY_RESULT_AVAILABLE: number;
     QUERY_RESULT: number;
 }
-interface Document {
+
+declare module BABYLON {
+  interface Document {
     mozCancelFullScreen(): void;
     msCancelFullScreen(): void;
     webkitCancelFullScreen(): void;
@@ -270,7 +272,9 @@ interface Document {
     mozPointerLockElement: HTMLElement;
     msPointerLockElement: HTMLElement;
     webkitPointerLockElement: HTMLElement;
+  }
 }
+
 interface HTMLCanvasElement {
     requestPointerLock(): void;
     msRequestPointerLock?(): void;
@@ -309,10 +313,14 @@ interface Navigator {
 interface HTMLVideoElement {
     mozSrcObject: any;
 }
-interface Screen {
+
+declare module BABYLON {
+  interface Screen {
     readonly orientation: string;
     readonly mozOrientation: string;
+  }
 }
+
 interface Math {
     fround(x: number): number;
     imul(a: number, b: number): number;
@@ -8573,11 +8581,15 @@ declare var VRDisplay: {
     prototype: VRDisplay;
     new (): VRDisplay;
 };
-interface VRLayer {
+
+declare module BABYLON {
+  interface VRLayer {
     leftBounds?: number[] | null;
     rightBounds?: number[] | null;
     source?: HTMLCanvasElement | null;
+  }
 }
+
 interface VRDisplayCapabilities {
     readonly canPresent: boolean;
     readonly hasExternalDisplay: boolean;
